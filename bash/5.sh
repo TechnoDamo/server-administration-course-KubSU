@@ -1,18 +1,22 @@
 #!/bin/bash
 
-output_file="logs.log"
+# Создаём или очищаем файл logs.log
+> logs.log
 
-# Очищаем файл, если он существует
-> "$output_file"
-
-# Обрабатываем каждый .log файл в /var/log
-for logfile in /var/log/*.log; do
-    if [ -f "$logfile" ]; then
+# Ищем все файлы в каталоге /var/log, которые заканчиваются на .log
+# и обрабатываем их в цикле
+for file in /var/log/*.log; do
+    # Проверяем, существует ли файл (на случай, если нет файлов с расширением .log)
+    if [ -f "$file" ]; then
         # Получаем последнюю строку из файла
-        last_line=$(tail -n 1 "$logfile")
-        # Записываем её в output_file
-        echo "$logfile: $last_line" >> "$output_file"
+        last_line=$(tail -n 1 "$file" 2>/dev/null)
+        
+        # Если удалось получить последнюю строку, записываем её в logs.log
+        if [ -n "$last_line" ]; then
+            echo "$last_line" >> logs.log
+        fi
     fi
 done
 
-echo "Последние строки сохранены в $output_file"
+# Сообщаем о завершении работы
+echo "Мы завершили обработку файлов. Результаты сохранены в logs.log."

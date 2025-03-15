@@ -1,16 +1,18 @@
 #!/bin/bash
 
-# Проверяем, если FOO=5 и BAR=1, запрещаем выполнение
-if [ "$FOO" -eq 5 ] && [ "$BAR" -eq 1 ]; then
-    echo "Ошибка: Выполнение запрещено, когда FOO=5 и BAR=1."
+# Проверка условий на переменные окружения
+if [[ "$FOO" == "5" && "$BAR" == "1" ]]; then
+    echo "Выполнение запрещено: FOO=5 и BAR=1."
     exit 1
 fi
 
-# Ожидаем появления файла в текущем каталоге
-echo "Ожидаем появления файла в текущем каталоге..."
+echo "Мониторим текущий каталог. Ожидаем новый файл..."
+
+# Используем inotifywait для отслеживания появления файлов
 while true; do
-    if [ "$(ls -A)" ]; then
-        echo "Файл появился!"
+    if inotifywait -q -e create --format "%f" .; then
+        new_file=$(inotifywait -q -e create --format "%f" .)
+        echo "Обнаружен файл: $new_file"
         exit 0
     fi
     sleep 1
