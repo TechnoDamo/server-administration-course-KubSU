@@ -1,20 +1,17 @@
 #!/bin/bash
 
-# Сохраняем текущий разделитель и устанавливаем новый (':')
 old_IFS=$IFS
 IFS=':'
 
-# Перебираем все каталоги в PATH
 for dir in $PATH; do
-    # Проверяем, существует ли каталог и доступен ли для чтения
+    count=0
     if [ -d "$dir" ] && [ -r "$dir" ]; then
-        # Считаем файлы (включая скрытые, исключая '.' и '..')
-        count=$(ls -1A "$dir" 2>/dev/null | wc -l)
-        echo "$dir => $count"
-    else
-        echo "$dir => 0"  # Если каталог недоступен или не существует, выводим 0
+        shopt -s dotglob nullglob
+        files=( "$dir"/* )
+        count=${#files[@]}
+        shopt -u dotglob nullglob
     fi
+    echo "$dir => $count"
 done
 
-# Восстанавливаем стандартный разделитель
 IFS=$old_IFS
