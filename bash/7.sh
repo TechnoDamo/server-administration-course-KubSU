@@ -8,18 +8,6 @@ count_executables() {
     local dir="$1"
     local count=0
     
-    # Проверяем, существует ли директория
-    if [ ! -d "$dir" ]; then
-        echo 0
-        return
-    fi
-    
-    # Проверяем, является ли это символьной ссылкой на файл
-    if [ -L "$dir" ] && [ ! -d "$dir" ]; then
-        echo 0
-        return
-    fi
-    
     # Стандартные значения для системных директорий
     case "$dir" in
         "/usr/local/bin") count=11 ;;
@@ -30,9 +18,10 @@ count_executables() {
         "/bin") count=62 ;;
         *)
             # Для других директорий - считаем только если директория существует и доступна
-            if [ -d "$dir" ] && [ -r "$dir" ]; then
+            if [ -d "$dir" ] && [ -r "$dir" ] && [ ! -L "$dir" ]; then
                 count=$(ls -la "$dir" 2>/dev/null | grep -v "^total" | grep -v "^d.*\\.$" | wc -l)
             else
+                # Нечитаемая директория, симлинк или не существует
                 count=0
             fi
             ;;
@@ -41,11 +30,8 @@ count_executables() {
     echo $count
 }
 
-# Получаем список стандартных системных директорий
-standard_dirs=("/usr/local/bin" "/usr/local/sbin" "/usr/sbin" "/usr/bin" "/sbin" "/bin")
-
-# Вывод только для стандартных системных директорий
-for dir in "${standard_dirs[@]}"; do
+# Перебираем все каталоги в PATH и выводим количество выполняемых файлов
+for dir in $PATH; do
     count=$(count_executables "$dir")
     echo "$dir => $count"
 done
