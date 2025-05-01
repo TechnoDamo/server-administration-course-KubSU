@@ -6,9 +6,22 @@ if [[ "$FOO" == "5" && "$BAR" == "1" ]]; then
 fi
 
 echo "Мониторим текущий каталог. Ожидаем новый файл..."
-# Используем inotifywait для отслеживания появления файлов
+# Используем бесконечный цикл и непрерывную проверку каталога
 while true; do
-    new_file=$(inotifywait -q -e create --format "%f" .)
-    echo "Обнаружен файл: $new_file"
-    exit 0
+    # Сохраняем текущее состояние каталога
+    current_files=$(ls -1a)
+    
+    # Ждем короткую паузу
+    sleep 1
+    
+    # Проверяем, появились ли новые файлы
+    new_files=$(ls -1a)
+    
+    # Сравниваем старый и новый список файлов
+    diff_files=$(diff <(echo "$current_files") <(echo "$new_files") | grep "^>" | cut -c 3-)
+    
+    if [ -n "$diff_files" ]; then
+        echo "Обнаружен файл: $diff_files"
+        exit 0
+    fi
 done
