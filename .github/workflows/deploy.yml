@@ -51,14 +51,14 @@ jobs:
           echo "..."
           tail -n 3 ~/.ssh/deploy_key
           
-          # Add server to known_hosts
-          ssh-keyscan -H 212.192.134.135 >> ~/.ssh/known_hosts
+          # Add server to known_hosts with custom port
+          ssh-keyscan -p 58529 -H 212.192.134.135 >> ~/.ssh/known_hosts
           
-          # Test basic SSH connection first
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no chatelet@212.192.134.135 "echo 'SSH connection successful'" || exit 1
+          # Test basic SSH connection first with custom port
+          ssh -p 58529 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no chatelet@212.192.134.135 "echo 'SSH connection successful'" || exit 1
           
-          # Start tunnel with debug logging
-          ssh -v -i ~/.ssh/deploy_key -N -L 5432:localhost:5432 chatelet@212.192.134.135 > ssh.log 2>&1 &
+          # Start tunnel with debug logging and custom port
+          ssh -v -p 58529 -i ~/.ssh/deploy_key -N -L 5432:localhost:5432 chatelet@212.192.134.135 > ssh.log 2>&1 &
           echo $! > ssh_tunnel.pid
           sleep 10
           
@@ -119,11 +119,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_GITHUB_ACTIONS }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H 212.192.134.135 >> ~/.ssh/known_hosts
+          ssh-keyscan -p 58529 -H 212.192.134.135 >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no chatelet@kubsu.tyvik.ru << 'EOF'
+          ssh -p 58529 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no chatelet@kubsu.tyvik.ru << 'EOF'
             cd ~/tasks/docker
             git pull origin master
             docker build -t my-app .
