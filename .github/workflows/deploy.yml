@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./docker
+        working-directory: ./docker  # Set the working directory to your docker directory
 
     steps:
       - name: Check out the code
@@ -45,7 +45,7 @@ jobs:
           - 5432:5432
     defaults:
       run:
-        working-directory: ./docker
+        working-directory: ./docker  # Set the working directory to your docker directory
 
     steps:
       - name: Check out the code
