@@ -38,56 +38,25 @@ jobs:
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
-
-      - name: Setup SSH infrastructure
+     
+      - name: Setup SSH tunnel
         run: |
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          # Write key with proper formatting
-          echo "${{ secrets.SSH_GITHUB_ACTIONS }}" | sed 's/\\n/\n/g' > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          # Verify key
-          ssh-keygen -l -f ~/.ssh/deploy_key || echo "Key format warning"
-
-      - name: Establish SSH tunnel
-        run: |
-          # Add host with custom port
-          ssh-keyscan -p 58529 -H 212.192.134.135 >> ~/.ssh/known_hosts
-          # Test direct connection first
-          ssh -p 58529 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            chatelet@212.192.134.135 "echo 'SSH test successful'" || exit 1
-          # Start tunnel with debug
-          ssh -v -p 58529 -i ~/.ssh/deploy_key -N -L 5432:localhost:5432 \
-            chatelet@212.192.134.135 > ssh.log 2>&1 &
-          echo $! > ssh_tunnel.pid
-          sleep 15
-          # Verify tunnel
-          if ! pgrep -f "5432:localhost:5432"; then
-            echo "Tunnel failed. Debug output:"
-            cat ssh.log
-            exit 1
-          fi
-
-      - name: Verify PostgreSQL
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-          pg_isready -h localhost -p 5432 -U kubsu || (echo "PostgreSQL unavailable"; exit 1)
+          echo "${{ secrets.SSH_GITHUB_ACTIONS }}" > ~/.ssh/key
+          chmod 600 ~/.ssh/key
+          ssh -fN -p 58529 -i ~/.ssh/key -L 5432:localhost:5432 chatelet@kubsu.tyvik.ru
+          sleep 3  # Brief wait for tunnel
 
       - name: Run tests
         env:
           DATABASE_URL: "postgresql://kubsu:kubsu@localhost:5432/kubsu"
         run: |
-          poetry run pytest --maxfail=1 --disable-warnings -q
+          pip install pytest
+          pytest
 
-      - name: Tunnel cleanup
+      - name: Cleanup
         if: always()
-        run: |
-          if [ -f ssh_tunnel.pid ]; then
-            kill $(cat ssh_tunnel.pid) || true
-            rm ssh_tunnel.pid
-          fi
-          rm -f ssh.log
+        run: pkill -f "5432:localhost:5432" || true
 
   deploy:
     runs-on: ubuntu-latest
