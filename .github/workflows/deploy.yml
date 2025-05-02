@@ -33,7 +33,6 @@ jobs:
     needs: [build]
     container:
       image: python:3.11-slim
-      options: --network host  # Critical change - uses host network
     services:
       postgres:
         image: postgres:13
