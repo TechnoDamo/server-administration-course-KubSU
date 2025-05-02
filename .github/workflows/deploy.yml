@@ -42,23 +42,46 @@ jobs:
       - name: Set up SSH tunnel to PostgreSQL
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_GITHUB_ACTIONS }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          
+          # Verify key format
+          echo "Key contents start:"
+          head -n 3 ~/.ssh/deploy_key
+          echo "..."
+          tail -n 3 ~/.ssh/deploy_key
+          
+          # Add server to known_hosts
           ssh-keyscan -H 212.192.134.135 >> ~/.ssh/known_hosts
-          # Start SSH tunnel in background
-          ssh -i ~/.ssh/deploy_key -N -L 5432:localhost:5432 chatelet@212.192.134.135 &
-          echo $! > ssh_tunnel.pid  # Save PID for later cleanup
-          sleep 5  # Wait for tunnel to establish
+          
+          # Test basic SSH connection first
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no chatelet@212.192.134.135 "echo 'SSH connection successful'" || exit 1
+          
+          # Start tunnel with debug logging
+          ssh -v -i ~/.ssh/deploy_key -N -L 5432:localhost:5432 chatelet@212.192.134.135 > ssh.log 2>&1 &
+          echo $! > ssh_tunnel.pid
+          sleep 10
+          
+          # Verify tunnel
+          if ! pgrep -f "5432:localhost:5432"; then
+            echo "SSH tunnel failed to start. Logs:"
+            cat ssh.log
+            exit 1
+          fi
 
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Verify PostgreSQL connection
         run: |
-          until pg_isready -h localhost -p 5432 -U kubsu; do
-            echo "Waiting for PostgreSQL connection..."
+          for i in {1..5}; do
+            if pg_isready -h localhost -p 5432 -U kubsu; then
+              exit 0
+            fi
             sleep 2
           done
+          echo "Failed to connect to PostgreSQL"
+          exit 1
 
       - name: Install dependencies
         run: |
@@ -73,12 +96,14 @@ jobs:
           poetry run pytest --maxfail=1 --disable-warnings -q
 
       - name: Clean up SSH tunnel
-        if: always()  # Ensure cleanup runs even if tests fail
+        if: always()
         run: |
           if [ -f ssh_tunnel.pid ]; then
+            echo "Stopping SSH tunnel..."
             kill $(cat ssh_tunnel.pid) || true
             rm ssh_tunnel.pid
           fi
+          rm -f ssh.log
 
   deploy:
     runs-on: ubuntu-latest
@@ -92,7 +117,7 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_GITHUB_ACTIONS }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H 212.192.134.135 >> ~/.ssh/known_hosts
 
