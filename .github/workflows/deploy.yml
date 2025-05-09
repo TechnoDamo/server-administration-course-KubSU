@@ -50,7 +50,7 @@ jobs:
         run: |
           docker run --network host \
             -e TESTING=1 \
-            app pytest -v docker/tests/
+            app pytest -v app/tests/
 
           
 
