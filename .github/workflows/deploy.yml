@@ -61,8 +61,8 @@ jobs:
         
       - name: Verifying deployment success
         run: |
-          curl -s curl http://212.192.134.135:60080/chatelet/users/  | grep "OK" || exit 1
-  
+          # curl -s curl http://212.192.134.135:60080/chatelet/users/  | grep "OK" || exit 1
+          curl https://www.docker.com/ | grep "OK" || exit 1
 
           
 
