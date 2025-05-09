@@ -20,7 +20,7 @@ jobs:
       run: |
         docker build \
           -t app:build-${{ github.sha }} \  # Unique tag per commit
-          -f /docker/Dockerfile \      # Your Dockerfile path
+          -f ./docker/Dockerfile \      # Your Dockerfile path
           .                                # Build context = repo root
         
         echo "Docker image built successfully"
