@@ -17,11 +17,11 @@ jobs:
 
     # 2. Build Docker image from custom path
     - name: Build Docker image
-      run: |
+      run: | 
         docker build \
-          -t app:build-${{ github.sha }} \  # Unique tag per commit
-          -f ./docker/Dockerfile \      # Your Dockerfile path
-          .                                # Build context = repo root
-        
+        -t app:build-${{ github.sha }} \
+        -f docker/Dockerfile \
+        .
+
         echo "Docker image built successfully"
-        docker images | grep app  # Verification 
+        docker images | grep app
