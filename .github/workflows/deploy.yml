@@ -21,7 +21,7 @@ jobs:
         docker build \
         -t app:build-${{ github.sha }} \
         -f docker/Dockerfile \
-        .
+        docker/
 
         echo "Docker image built successfully"
         docker images | grep app
