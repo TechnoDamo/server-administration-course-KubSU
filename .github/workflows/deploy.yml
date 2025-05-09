@@ -51,6 +51,18 @@ jobs:
           docker run --network host \
             -e TESTING=1 \
             app pytest -v ./tests/
+     
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pseudo-deploy
+        run: echo "Deployed"
+        
+      - name: Verifying deployment success
+        run: |
+          curl -s curl http://212.192.134.135:60080/chatelet/users/  | grep "OK" || exit 1
+  
 
           
 
