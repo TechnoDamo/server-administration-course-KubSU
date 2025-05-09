@@ -28,7 +28,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-
+    needs: verify-docker-build
     services:
       postgres:
         image: postgres:15
