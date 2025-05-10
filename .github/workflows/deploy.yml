@@ -20,7 +20,7 @@ jobs:
       run: | 
         docker build \
         -t technodamo/kubsu_docker:build-${{ github.sha }} \
-        -t ***/kubsu_docker:latest \
+        -t technodamo/kubsu_docker:latest \
         -f docker/Dockerfile \
         docker/
 
