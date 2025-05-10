@@ -19,13 +19,13 @@ jobs:
     - name: Build Docker image
       run: | 
         docker build \
-        -t technodamo/kubsu_docker:build-${{ github.sha }} \
-        -t technodamo/kubsu_docker:latest \
+        -t ${{ secrets.DOCKER_USER }}/kubsu_docker:build-${{ github.sha }} \
+        -t ${{ secrets.DOCKER_USER }}/kubsu_docker:latest \
         -f docker/Dockerfile \
         docker/
 
         echo "Docker image built successfully"
-        docker images | grep technodamo/kubsu_docker
+        docker images | grep ${{ secrets.DOCKER_USER }}/kubsu_docker
 
   test:
     runs-on: ubuntu-latest
@@ -47,20 +47,20 @@ jobs:
       - name: Build app image
         run: |
           docker build \
-          -t technodamo/kubsu_docker:build-${{ github.sha }} \
-          -t technodamo/kubsu_docker:latest \
+          -t ${{ secrets.DOCKER_USER }}/kubsu_docker:build-${{ github.sha }} \
+          -t ${{ secrets.DOCKER_USER }}/kubsu_docker:latest \
           -f docker/Dockerfile \
           docker/
 
           echo "Docker image built successfully"
-          docker images | grep technodamo/kubsu_docker
+          docker images | grep ${{ secrets.DOCKER_USER }}/kubsu_docker
 
       
       - name: Run tests
         run: |
           docker run --network host \
             -e TESTING=1 \
-            technodamo/kubsu_docker:build-${{ github.sha }} pytest -v ./tests/
+            ${{ secrets.DOCKER_USER }}/kubsu_docker:build-${{ github.sha }} pytest -v ./tests/
 
       - name: Push to docker registry
         if: success()
