@@ -69,3 +69,17 @@ jobs:
           docker push technodamo/kubsu_docker:build-${{ github.sha }}
           docker push technodamo/kubsu_docker:latest
           echo "Would have pushed app:${{ github.sha }}"
+          
+  deploy:
+    runs-on: self-hosted
+    needs: [ test ]
+    steps:
+      - name: Execute ssh command via using private key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          script: cd tasks/docker && restart.sh 
+    
