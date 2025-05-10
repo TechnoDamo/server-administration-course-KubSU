@@ -24,7 +24,7 @@ jobs:
         docker/
 
         echo "Docker image built successfully"
-        docker images | grep app 
+        docker images | technodamo/kubsu_docker
 
   test:
     runs-on: ubuntu-latest
