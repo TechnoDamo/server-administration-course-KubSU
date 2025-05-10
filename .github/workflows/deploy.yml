@@ -55,10 +55,9 @@ jobs:
       - name: Push to docker registry
         if: success()
         run: |
-          echo "Uncomment these lines after setting up registry secrets:"
-            # docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
-            # docker push app:${{ github.sha }}
-            # docker push app:latest
+          docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
+          docker push app:${{ github.sha }}
+          docker push app:latest
           echo "Would have pushed app:${{ github.sha }}"
       
      
