@@ -51,7 +51,7 @@ jobs:
         run: |
           docker run --network host \
             -e TESTING=1 \
-            technodamo/kubsu_docker pytest -v ./tests/
+            technodamo/kubsu_docker:build-${{ github.sha }} pytest -v ./tests/
 
       - name: Push to docker registry
         if: success()
