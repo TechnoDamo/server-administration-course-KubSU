@@ -45,7 +45,16 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Build app image
-        run: docker build -t app docker/
+        run: |
+          docker build \
+          -t technodamo/kubsu_docker:build-${{ github.sha }} \
+          -t technodamo/kubsu_docker:latest \
+          -f docker/Dockerfile \
+          docker/
+
+          echo "Docker image built successfully"
+          docker images | grep technodamo/kubsu_docker
+
       
       - name: Run tests
         run: |
