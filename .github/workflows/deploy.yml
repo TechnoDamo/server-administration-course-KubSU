@@ -81,5 +81,5 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.PORT }}
-          script: cd tasks/docker && restart.sh 
+          script: cd ~/tasks/docker && restart.sh 
     
