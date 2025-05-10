@@ -1,4 +1,4 @@
-name: Build, Test, and Deploy
+name: Deployment script
 
 on:
   push:
@@ -7,20 +7,24 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Build Docker image
-        run: |
-          docker build \
-            -t technodamo/kubsu_docker:${{ github.sha }} \
-            -t technodamo/kubsu_docker:latest \
-            -f docker/Dockerfile \
-            docker/
-          docker images | grep technodamo/kubsu_docker
+    steps:
+    # 1. Checkout code with full history 
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # 2. Build Docker image from custom path
+    - name: Build Docker image
+      run: | 
+        docker build \
+        -t app:build-${{ github.sha }} \
+        -f docker/Dockerfile \
+        docker/
+
+        echo "Docker image built successfully"
+        docker images | grep app 
 
   test:
     runs-on: ubuntu-latest
@@ -39,21 +43,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-
+      - name: Build app image
+        run: docker build -t app docker/
+      
       - name: Run tests
         run: |
           docker run --network host \
             -e TESTING=1 \
-            technodamo/kubsu_docker:${{ github.sha }} \
-            pytest -v ./tests/
+            app pytest -v ./tests/
 
-      - name: Push to Docker Hub
+      - name: Push to docker registry
         if: success()
         run: |
+          docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
           docker push technodamo/kubsu_docker:${{ github.sha }}
           docker push technodamo/kubsu_docker:latest
+          echo "Would have pushed app:${{ github.sha }}"
