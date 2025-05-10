@@ -19,7 +19,7 @@ jobs:
     - name: Build Docker image
       run: | 
         docker build \
-        -t app:build-${{ github.sha }} \
+        -t technodamo/kubsu_docker:build-${{ github.sha }} \
         -f docker/Dockerfile \
         docker/
 
@@ -50,7 +50,7 @@ jobs:
         run: |
           docker run --network host \
             -e TESTING=1 \
-            app pytest -v ./tests/
+            technodamo/kubsu_docker pytest -v ./tests/
 
       - name: Push to docker registry
         if: success()
