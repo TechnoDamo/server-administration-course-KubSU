@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  verify-docker-build:
+  verify:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +28,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    needs: verify-docker-build
+    needs: verify
     services:
       postgres:
         image: postgres:15
@@ -51,19 +51,17 @@ jobs:
           docker run --network host \
             -e TESTING=1 \
             app pytest -v ./tests/
-     
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Pseudo-deploy
-        run: echo "Deployed"
-        
-      - name: Verifying deployment success
-        run: |
-          # curl -s curl http://212.192.134.135:60080/chatelet/users/  | grep "OK" || exit 1
-          curl https://www.docker.com/ | grep "OK" || exit 1
 
+      - name: Push to docker registry
+        if: success()
+        run: |
+          echo "Uncomment these lines after setting up registry secrets:"
+            # docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
+            # docker push app:${{ github.sha }}
+            # docker push app:latest
+          echo "Would have pushed app:${{ github.sha }}"
+      
+     
           
 
 
