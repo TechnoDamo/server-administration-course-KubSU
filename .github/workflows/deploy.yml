@@ -56,8 +56,8 @@ jobs:
         if: success()
         run: |
           docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
-          docker push app:${{ github.sha }}
-          docker push app:latest
+          docker push technodamo/kubsu_docker:${{ github.sha }}
+          docker push technodamo/kubsu_docker:latest
           echo "Would have pushed app:${{ github.sha }}"
       
      
